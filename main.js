@@ -4,8 +4,10 @@ let searchPokemon = document.getElementById("search-pokemon")
 let postPerPageDiv = document.getElementById("postPerPageDiv")
 let postPerPageSelect = document.getElementById("post-per-page-select")
 let pagination = document.getElementById("pagination")
-let nextPage = document.getElementById("nextPage")
-let prevPage = document.getElementById("prevPage")
+let nextButton = document.getElementById("nextPage")
+let prevButton = document.getElementById("prevPage")
+let currentOffset = 0 //default set 0
+let postPerPageVal = 0
 let dupPokemonData = []
 
 //Loader
@@ -70,8 +72,9 @@ const getData = async (offset) => {
         pokemonROW.innerHTML = "<p class='no-data'>No data is found</p>"
     }
 }
-// defualt value is 10
-getData(0)
+// defualt value is 0
+// getData(currentOffset)
+
 
 //search button hanlder
 function searchHandler() {
@@ -81,8 +84,7 @@ function searchHandler() {
 
     //empty then show all
     if (searchPokemon.value === "") {
-        getData(1)
-        console.log("empty value")
+        getData(currentOffset)
         postPerPageDiv.style.display = "block"
         return
     }
@@ -112,85 +114,67 @@ searchPokemon.addEventListener("keypress", (event) => {
 
 //Post per page
 postPerPageSelect.addEventListener("change", () => {
-    // pokemonROW.innerHTML = ""
-    getData(postPerPageSelect.value)
+    getData(currentOffset)
+    postPerPageVal = postPerPageSelect.value
 })
 
-function paginationUpdate() {
-    let limit = 50;
-    let pokemonPerPage = 10
-    let totalPagination = limit / pokemonPerPage
-    let currentPage = 1
-    let currentOffset = 0
-    let isActiveOld = null
-    let oldVal = 0
-    prevPage.classList.toggle("disabled", currentPage === 1);
-    nextPage.classList.toggle("disabled", currentPage === totalPagination - 1);
 
-    for (let i = 0; i < totalPagination; i++) {
+let currentPage = 1 //default set 1
+let limit = 50;
+let pokemonPerPage = 10
+let totalPaginationItem = limit / pokemonPerPage
+function updatePagination() {
+    for (let i = 0; i < totalPaginationItem; i++) {
         let pageItem = document.createElement("li");
         let pageLink = document.createElement("a");
         pageItem.className = "page-item";
         pageLink.className = "page-link";
-        pageLink.innerHTML = currentPage
-        pageLink.setAttribute("value", (currentPage - 1) * 10)
-        currentPage++
+        pageLink.innerHTML = i + 1
         pageLink.href = "javascript:void(0)";
         pageLink.addEventListener("click", () => {
-            if (isActiveOld) {
-                isActiveOld.parentElement.classList.remove("active");
-                oldVal = isActiveOld.getAttribute("value")
-            }
-            currentOffset = parseInt(pageLink.getAttribute("value"))
-
-            if (oldVal === currentOffset) {
-                console.log("found same")
-            } else {
-                getData(currentOffset)
-                isActiveOld = pageLink
-            }
-            //remove the default
-            
-            pageItem.classList.add("active");
+            currentPage = i + 1
+            currentOffset = (i) * pokemonPerPage
+            currentPageHandler()
         });
         pageItem.appendChild(pageLink);
-        pagination.insertBefore(pageItem, nextPage);
+        pagination.insertBefore(pageItem, nextButton);
     }
-
-    nextPage.addEventListener("click",()=>{
-        let pageLinks = document.querySelectorAll(".page-item");
-        if (currentOffset + pokemonPerPage < limit) {
-            for (let i = 0; i < pageLinks.length; i++) {
-                if (pageLinks[i].classList.contains("active")) {
-                    pageLinks[i].classList.remove("active");
-                    pageLinks[i + 1].classList.add("active");
-                    break;
-                }
-            }
-            console.log(currentOffset + pokemonPerPage)
-            currentOffset = currentOffset + pokemonPerPage
-            getData(currentOffset)
-        }
-    })
+    //intial call 
+    currentPageHandler()
 }
-paginationUpdate()
+updatePagination()
 
+//current page number update
+function currentPageHandler() {
+    let paginationItems = document.querySelectorAll(".page-item");
+    paginationItems.forEach((item, index) => {
+        // console.log(index, totalPaginationItem)
+        if (index === currentPage) {
+            console.log("ind",index, "==== item",item, " ==== CP", currentPage," ==== offset ",currentOffset)
+            getData(currentOffset)
+            item.classList.add("active");
+        } else {
+            item.classList.remove("active");
+        }
+    });
+    prevButton.classList.toggle("disabled", currentPage === 1);
+    nextButton.classList.toggle("disabled", currentPage === limit / pokemonPerPage);
+}
 
-
-// // Assuming you have a list of page links with class "page-link"
-// const pageLinks = document.querySelectorAll(".page-link");
-
-// // Add a click event listener to each page link
-// pageLinks.forEach(pageLink => {
-//     pageLink.addEventListener("click", (event) => {
-//         event.preventDefault(); // Prevent the default link behavior
-
-//         // Get the value attribute of the clicked page link
-//         const value = pageLink.getAttribute("value");
-        
-//         console.log("Clicked page link value:", value);
-
-//         // Your code to handle the click event goes here
-//     });
-// });
-
+//prev and next button
+prevButton.addEventListener("click", function () {
+    if (currentPage > 1) {
+        currentPage--;
+        currentOffset = currentOffset - pokemonPerPage
+        getData(currentOffset)
+        currentPageHandler();
+    }
+});
+nextButton.addEventListener("click", () => {
+    if (currentPage <= limit / pokemonPerPage - 1) {
+        currentPage++;
+        currentOffset = currentOffset + pokemonPerPage
+        getData(currentOffset)
+        currentPageHandler();
+    }
+});
