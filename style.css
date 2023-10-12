@@ -1,0 +1,88 @@
+body {
+  background: #e1e1e1;
+}
+
+body,
+button,
+a,
+input {
+  font-family: "Play", sans-serif;
+}
+
+/* search button */
+.search {
+  position: relative;
+  box-shadow: 0 0 40px rgba(51, 51, 51, 0.1);
+}
+
+.search input {
+  height: 60px;
+  text-indent: 25px;
+  border: 2px solid #d6d4d4;
+}
+
+.search input:focus {
+  box-shadow: none;
+  border: 2px solid #0559A1;
+}
+
+.search .fa-search {
+  position: absolute;
+  top: 20px;
+  left: 16px;
+}
+
+.search button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  height: 50px;
+  width: 110px;
+  background: #0559A1;
+}
+
+
+/* card */
+.pokemon-gird img {
+  width: 100px;
+  margin: 0 auto;
+  padding-top: 20px;
+}
+
+.pokemon-gird .card-body {
+  text-align: center;
+}
+
+.pokemon-gird .card-text {
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.page-item:not(:first-child) .page-link {
+  margin-left: 0 !important;
+}
+
+.page-link {
+  border: 1px solid #005ba1 !important;
+  border-radius: 0.25rem !important;
+}
+
+.page-link:hover {
+  background: #005ba1;
+  color: #fff;
+}
+
+.page-item.active .page-link {
+  background: #005ba1 !important;
+}
+
+.post-per-page {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.no-data {
+  font-size: 26px;
+  text-align: center;
+  padding-top: 40px;
+}
