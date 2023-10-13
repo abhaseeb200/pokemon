@@ -45,6 +45,7 @@ input {
 /* card */
 .pokemon-gird img {
   width: 100px;
+  height: 110px;
   margin: 0 auto;
   padding-top: 20px;
 }

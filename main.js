@@ -7,6 +7,7 @@ let pagination = document.getElementById("pagination")
 let nextButton = document.getElementById("nextPage")
 let prevButton = document.getElementById("prevPage")
 let currentOffset = 0 //default set 0
+let pokemonPerPage = 10 //default set 10
 let postPerPageVal = 0
 let dupPokemonData = []
 
@@ -24,7 +25,7 @@ function loader() {
 
 
 //render DOM
-function pokemonDataDOM(data) {
+function pokemonDataDOM(data,pokemonImg) {
     let divCol = document.createElement("div")
     let divCard = document.createElement("div")
     let imgCard = document.createElement("img")
@@ -32,13 +33,13 @@ function pokemonDataDOM(data) {
     let CardBodyP = document.createElement("p")
 
     divCol.classList.add("col-md-3", "col-sm-6", "mt-3")
-    divCard.classList.add("card", "shadow")
+    divCard.classList.add("card", "shadow","w-100")
     imgCard.classList.add("card-img-top")
     divCardBody.classList.add("card-body")
     CardBodyP.classList.add("card-text")
 
     CardBodyP.innerHTML = data.name
-    imgCard.src = "./assets/images/pokemon-2.png"
+    imgCard.src = pokemonImg
 
     pokemonROW.appendChild(divCol)
     divCol.appendChild(divCard)
@@ -48,20 +49,36 @@ function pokemonDataDOM(data) {
 }
 
 //get API data
-const getData = async (offset) => {
+const getData = async (offset,limit) => {
     console.log({ offset })
     loader()
     try {
-        let data = await fetch(`https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=10`)
+        let data = await fetch(`https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`)
         let res = await data.json()
 
         //Hide loader
         pokemonROW.innerHTML = ""
 
+        dupPokemonData = []
         //create DOM
-        dupPokemonData = res.results
         for (let i = 0; i < res.results?.length; i++) {
-            pokemonDataDOM(res.results[i])
+            const getSinglePokemonData = async () => {
+                try {
+                    let data = await fetch(res.results[i].url)
+                    let response = await data.json()
+
+                    let pokemonSingleImg = response.sprites.other.dream_world.front_default
+                    pokemonDataDOM(res.results[i],pokemonSingleImg)
+                    dupPokemonData.push({"name":res.results[i].name, "src" : pokemonSingleImg})
+                } catch(err) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: err,
+                    })
+                }
+            }
+            getSinglePokemonData()
         }
     } catch (err) {
         Swal.fire({
@@ -72,19 +89,16 @@ const getData = async (offset) => {
         pokemonROW.innerHTML = "<p class='no-data'>No data is found</p>"
     }
 }
-// defualt value is 0
-// getData(currentOffset)
 
 
 //search button hanlder
 function searchHandler() {
     console.log("current value: ", searchPokemon.value)
     let findPokemonName = dupPokemonData.filter(element => element.name === searchPokemon.value);
-    console.log(findPokemonName)
 
     //empty then show all
     if (searchPokemon.value === "") {
-        getData(currentOffset)
+        getData(currentOffset,pokemonPerPage)
         postPerPageDiv.style.display = "block"
         return
     }
@@ -95,7 +109,7 @@ function searchHandler() {
     //If pokemon is name find
     if (findPokemonName.length) {
         pokemonROW.innerHTML = ""
-        pokemonDataDOM(findPokemonName[0])
+        pokemonDataDOM(findPokemonName[0],findPokemonName[0].src)
     } else {
         //If pokemon is not name find
         pokemonROW.innerHTML = "<p class='no-data'>No result is found</p>"
@@ -112,17 +126,34 @@ searchPokemon.addEventListener("keypress", (event) => {
     }
 })
 
+
+
+
+//Pagination
+let currentPage = 1 //default set 1
+let limitRange = 50;
+let totalPaginationItem = Math.ceil(limitRange / pokemonPerPage)
+
 //Post per page
 postPerPageSelect.addEventListener("change", () => {
-    getData(currentOffset)
-    postPerPageVal = postPerPageSelect.value
+    currentOffset = 0 ;
+    //emptry old pagination
+    let paginationItems = document.querySelectorAll(".page-item");
+    paginationItems.forEach((item,ind)=> {
+        if (ind === 0 || ind === paginationItems.length - 1) {
+            //get prev & next button
+        } else {
+            item.parentNode.removeChild(item);
+        }
+    })
+
+    pokemonPerPage = parseInt(postPerPageSelect.value)
+    totalPaginationItem = Math.ceil(limitRange / pokemonPerPage)
+    getData(currentOffset,pokemonPerPage)
+    updatePagination()
+
 })
 
-
-let currentPage = 1 //default set 1
-let limit = 50;
-let pokemonPerPage = 10
-let totalPaginationItem = limit / pokemonPerPage
 function updatePagination() {
     for (let i = 0; i < totalPaginationItem; i++) {
         let pageItem = document.createElement("li");
@@ -139,7 +170,6 @@ function updatePagination() {
         pageItem.appendChild(pageLink);
         pagination.insertBefore(pageItem, nextButton);
     }
-    //intial call 
     currentPageHandler()
 }
 updatePagination()
@@ -148,17 +178,19 @@ updatePagination()
 function currentPageHandler() {
     let paginationItems = document.querySelectorAll(".page-item");
     paginationItems.forEach((item, index) => {
-        // console.log(index, totalPaginationItem)
         if (index === currentPage) {
-            console.log("ind",index, "==== item",item, " ==== CP", currentPage," ==== offset ",currentOffset)
-            getData(currentOffset)
+            console.log("ind", index, "==== item", item, " ==== CP", currentPage, " ==== offset ", currentOffset)
+            let isActiveClass = item.classList.contains("active")
+            if (!isActiveClass) {
+                getData(currentOffset,pokemonPerPage) //API get off when whey they are active
+            }
             item.classList.add("active");
         } else {
             item.classList.remove("active");
         }
     });
     prevButton.classList.toggle("disabled", currentPage === 1);
-    nextButton.classList.toggle("disabled", currentPage === limit / pokemonPerPage);
+    nextButton.classList.toggle("disabled", currentPage === Math.ceil(limitRange / pokemonPerPage));
 }
 
 //prev and next button
@@ -166,15 +198,13 @@ prevButton.addEventListener("click", function () {
     if (currentPage > 1) {
         currentPage--;
         currentOffset = currentOffset - pokemonPerPage
-        getData(currentOffset)
         currentPageHandler();
     }
 });
 nextButton.addEventListener("click", () => {
-    if (currentPage <= limit / pokemonPerPage - 1) {
+    if (currentPage <= Math.ceil(limitRange / pokemonPerPage) - 1) {
         currentPage++;
         currentOffset = currentOffset + pokemonPerPage
-        getData(currentOffset)
         currentPageHandler();
     }
 });
