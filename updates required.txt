@@ -1,0 +1,5 @@
+- Pagination to first and last show with dots
+- Pagination API data get, if they are clicked
+- Post per page - pending
+- Ui on modal - pending
+- Required more data in modal - pending

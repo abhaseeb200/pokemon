@@ -87,3 +87,35 @@ input {
   text-align: center;
   padding-top: 40px;
 }
+
+.card {
+  cursor: pointer;
+}
+
+.inline-block {
+  display: inline-block !important;
+}
+
+.cust-badges {
+  background: #ddd !important;
+  color: #000;
+  padding: 9px 24px;
+  border-radius: 55px;
+  font-size: 18px;
+  FONT-WEIGHT: 400;
+}
+.badge {
+  font-size: 16px !important;
+}
+
+h1 {
+  font-size: calc(1.9rem + 1.6vw)  !important;
+}
+
+.font-18 {
+  font-size: 18px;
+}
+
+.modal-body {
+  padding-bottom:  30px !important;
+}
